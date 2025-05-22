@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hockey Lineup Manager</title>
+  <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.20.6/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+  <!-- ✅ FIXED: class -> not className -->
+  <div id="root" class="min-h-screen bg-gray-100"></div>
+
+  <script type="text/babel">
+    const { useState } = React;
+
+    const App = () => {
+      const [lineup, setLineup] = useState([
+        { id: 1, name: "Aimee Millard", jerseyNumber: "2", position: "C", impact: 2, type: "player" },
+        { id: 2, name: "Charlotte Burgess", jerseyNumber: "8", position: "L", impact: 2, type: "player" },
+        { id: 3, name: "Cali Alldread", jerseyNumber: "10", position: "R", impact: 2, type: "player" },
+        { id: 4, name: "Hannah Ghanchi", jerseyNumber: "18", position: "C", impact: 3, type: "player" },
+        { id: 5, name: "Victoria Yerlitz", jerseyNumber: "6", position: "L", impact: 2, type: "player" },
+        { id: 6, type: "divider" },
+        { id: 7, name: "Lydia Trautmann", jerseyNumber: "5", position: "R", impact: 3, type: "player" },
+        { id: 8, name: "Lily Skan", jerseyNumber: "4", position: "C", impact: 3, type: "player" },
+        { id: 9, name: "Hannah Gordon", jerseyNumber: "9", position: "L", impact: 4, type: "player" },
+        { id: 10, name: "Grace Debono", jerseyNumber: "3", position: "D", impact: 4, type: "player" },
+        { id: 11, name: "Molly Jeffries", jerseyNumber: "13", position: "D", impact: 4, type: "player" },
+        { id: 12, type: "divider" },
+        { id: 13, name: "Avery Anderson", jerseyNumber: "12", position: "D", impact: 4, type: "player" },
+        { id: 14, name: "Ima Marie Doherty", jerseyNumber: "14", position: "D", impact: 5, type: "player" },
+        { id: 15, name: "Avery Watts", jerseyNumber: "16", position: "G", impact: 5, type: "player" },
+        { id: 16, name: "Avery Burke", jerseyNumber: "15", position: "G", impact: 5, type: "player" },
+      ]);
+      const [away, setAway] = useState([]);
+      const [showImpact, setShowImpact] = useState(true);
+
+      const handleDragStart = (index, source) => {
+        const data = { index, source };
+        localStorage.setItem("dragData", JSON.stringify(data));
+      };
+
+      const handleDragOver = (e) => e.preventDefault();
+
+      const handleDrop = (index, target) => {
+        const dragData = JSON.parse(localStorage.getItem("dragData"));
+        if (!dragData) return;
+        const { index: draggedIndex, source } = dragData;
+
+        const sourceList = source === "lineup" ? [...lineup] : [...away];
+        const targetList = target === "lineup" ? [...lineup] : [...away];
+
+        const [draggedItem] = sourceList.splice(draggedIndex, 1);
+        if (!draggedItem || draggedItem.type !== "player") return;
+
+        if (source === target) {
+          targetList.splice(index, 0, draggedItem);
+        } else {
+          targetList.splice(index, 0, draggedItem);
+        }
+
+        if (source === "lineup") setLineup(sourceList);
+        else setAway(sourceList);
+
+        if (target === "lineup") setLineup(targetList);
+        else setAway(targetList);
+
+        localStorage.removeItem("dragData");
+      };
+
+      const renderList = (list, listName) =>
+        list.length === 0 ? (
+          <li className="p-2 bg-gray-200 rounded text-center">No players in this section</li>
+        ) : (
+          list.map((item, index) =>
+            item.type === "player" ? (
+              <li
+                key={item.id}
+                draggable
+                onDragStart={() => handleDragStart(index, listName)}
+                onDragOver={handleDragOver}
+                onDrop={() => handleDrop(index, listName)}
+                className="flex items-center p-2 bg-white rounded shadow-md cursor-move touch-none"
+              >
+                <div className="flex-1 flex items-center space-x-2">
+                  <input
+                    type="text"
+                    value={item.name}
+                    onChange={(e) =>
+                      listName === "lineup"
+                        ? setLineup(lineup.map(p => p.id === item.id ? { ...p, name: e.target.value } : p))
+                        : setAway(away.map(p => p.id === item.id ? { ...p, name: e.target.value } : p))
+                    }
+                    className="w-1/3 p-1 border rounded"
+                    placeholder="Name"
+                  />
+                  <input
+                    type="text"
+                    value={item.jerseyNumber}
+                    onChange={(e) =>
+                      listName === "lineup"
+                        ? setLineup(lineup.map(p => p.id === item.id ? { ...p, jerseyNumber: e.target.value } : p))
+                        : setAway(away.map(p => p.id === item.id ? { ...p, jerseyNumber: e.target.value } : p))
+                    }
+                    className="w-1/6 p-1 border rounded"
+                    placeholder="#"
+                  />
+                  <select
+                    value={item.position}
+                    onChange={(e) =>
+                      listName === "lineup"
+                        ? setLineup(lineup.map(p => p.id === item.id ? { ...p, position: e.target.value } : p))
+                        : setAway(away.map(p => p.id === item.id ? { ...p, position: e.target.value } : p))
+                    }
+                    className="w-1/6 p-1 border rounded"
+                  >
+                    <option value="C">C</option>
+                    <option value="L">L</option>
+                    <option value="R">R</option>
+                    <option value="D">D</option>
+                    <option value="G">G</option>
+                  </select>
+                  {showImpact && (
+                    <select
+                      value={item.impact}
+                      onChange={(e) =>
+                        listName === "lineup"
+                          ? setLineup(lineup.map(p => p.id === item.id ? { ...p, impact: parseInt(e.target.value) } : p))
+                          : setAway(away.map(p => p.id === item.id ? { ...p, impact: parseInt(e.target.value) } : p))
+                      }
+                      className="w-1/6 p-1 border rounded"
+                    >
+                      {[1, 2, 3, 4, 5].map(i => (
+                        <option key={i} value={i}>{"•".repeat(i)}</option>
+                      ))}
+                    </select>
+                  )}
+                  <button
+                    onClick={() => {
+                      if (listName === "lineup") {
+                        setLineup(lineup.filter(p => p.id !== item.id));
+                        setAway([...away, item]);
+                      } else {
+                        setAway(away.filter(p => p.id !== item.id));
+                        setLineup([...lineup, item]);
+                      }
+                    }}
+                    className={`px-2 py-1 rounded text-white ${listName === "lineup" ? "bg-red-500 hover:bg-red-600" : "bg-green-500 hover:bg-green-600"}`}
+                  >
+                    {listName === "lineup" ? "To Away" : "To Lineup"}
+                  </button>
+                </div>
+              </li>
+            ) : (
+              <li key={item.id} className="p-2 bg-gray-200 rounded"></li>
+            )
+          )
+        );
+
+      return (
+        <div className="container mx-auto p-4">
+          <h1 className="text-2xl font-bold text-center mb-4">Hockey Lineup Manager</h1>
+          <div className="flex justify-between mb-4">
+            <button
+              onClick={() =>
+                setLineup([
+                  ...lineup,
+                  {
+                    id: lineup.length + away.length + 1,
+                    name: `Player ${lineup.length + away.length + 1}`,
+                    jerseyNumber: "",
+                    position: "F",
+                    impact: 1,
+                    type: "player",
+                  },
+                ])
+              }
+              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+            >
+              Add Player
+            </button>
+            <button
+              onClick={() => setShowImpact(!showImpact)}
+              className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+            >
+              {showImpact ? "Hide Impact" : "Show Impact"}
+            </button>
+          </div>
+          <h2 className="text-xl font-semibold mb-2">Active Lineup</h2>
+          <ul className="space-y-2 mb-6">
+            {renderList(lineup, "lineup")}
+          </ul>
+          <h2 className="text-xl font-semibold mb-2">Away Players</h2>
+          <ul className="space-y-2" onDragOver={handleDragOver} onDrop={() => handleDrop(away.length, "away")}>
+            {renderList(away, "away")}
+          </ul>
+        </div>
+      );
+    };
+
+    ReactDOM.render(<App />, document.getElementById("root"));
+  </script>
+</body>
+</html>
